@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace ConsoleApp1.Models
+namespace Automation.DataAccess.DataAccessObjects.DKP.DTO
 {
-    public class EventDTO
+    public class EventDto
     {
         public bool active { get; set; }
         public string MessageQueue { get; set; }
@@ -45,9 +45,6 @@ namespace ConsoleApp1.Models
         public bool ImportResultXml { get; set; }
         public int? ImportResultXsltID { get; set; }
         public bool ExcludeFromMonitoring { get; set; }
-    }
-
-
- 
+    } 
 }
 

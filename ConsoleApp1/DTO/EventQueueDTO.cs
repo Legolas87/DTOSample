@@ -1,8 +1,7 @@
 ﻿using System;
-
-namespace ConsoleApp1.Models
+namespace Automation.DataAccess.DataAccessObjects.DKP.DTO
 {
-    public class EventQueueDTO
+    public class EventQueueDto
     {
         public int EventQueueID { get; set; }
         public int EventID { get; set; }

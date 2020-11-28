@@ -1,8 +1,8 @@
 ﻿using System;
 
-namespace ConsoleApp1.Models
+namespace Automation.DataAccess.DataAccessObjects.DKP.DTO
 {
-    public class PublicDataFileLogDTO
+    public class PublicDataFileLogDto
     {
         public int PublicDataFileLogID { get; set; }
         public string FileName { get; set; }
