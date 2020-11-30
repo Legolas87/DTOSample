@@ -28,5 +28,11 @@ namespace Automation.DataAccess.DataAccessObjects.DKP.DTO
         public string PartitionDateKey { get; set; }
         public bool? Archived { get; set; }
     }
-}																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																																									
+
+
+    public class EventQueueExtendedDto: EventQueueDto
+    {
+        public DateTime DateNow { get; set; }
+    }
+}
 
