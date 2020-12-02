@@ -217,7 +217,7 @@ namespace Automation.DataAccess.DKP
             const string sqlQuery = "select '#Non-CLEAR' QueryName,po.ProductOrderID,po.ProductOrder,at.AttachmentID,at.Attachment,ds.DecisionID,ds.ActualStart,ds.status,ds.ActualCompletion,po.CreatedDate, org.Organization,p.ProductName,po.OrganizationID,po.productid,po.productOrderType,po.status ,pod.PODCount,at.FileRowCount,ds.* " +
                 " from productorder po with (nolock) inner join organization org with(nolock) on po.OrganizationID = org.OrganizationID inner join product p with(nolock) on po.productID = p.ProductID" +
                 " OUTER APPLY (SELECT pd.productORderID,count(pd.loanid) PODCount FROM productORderDetails pd with(nolock) WHERE po.productORderID = pd.ProductOrderID group by pd.productORderID)POD" +
-                " OUTER APPLY (SELECT att.AttachmentID,att.Attachment,att.FileRowCount FROM Attachment att with(nolock) WHERE po.AttachmentID = att.AttachmentID AND(ATT.Attachment NOT LIKE '%ISERIES%' AND ATT.Attachment NOT LIKE '%DALSINPUT%'))at"+
+                " OUTER APPLY (SELECT att.AttachmentID,att.Attachment,att.FileRowCount FROM Attachment att with(nolock) WHERE po.AttachmentID = att.AttachmentID AND(ATT.Attachment NOT LIKE '%ISERIES%' AND ATT.Attachment NOT LIKE '%DALSINPUT%'))at" +
                 " OUTER APPLY (select d.DecisionID,dt.DecisionTemplateID,dt.DecisionTemplate,dt.Object,dt.ReportID,d.ActualStart,d.status,d.ActualCompletion from product p with(nolock) inner join DecisionTemplate dt with(nolock) on dt.DecisionTemplateID = p.DecisionID AND p.ProductID = po.ProductID inner join Decision d with(nolock) on d.DecisionTemplateID = dt.DecisionTemplateID WHERE d.Object = 'ProductOrder' AND d.ObjectID = po.ProductOrderID)ds" +
                 "  where po.createddate >= getdate()-@d AND po.AttachmentID = at.AttachmentID and po.productID != 23 order by po.CreatedDate";
 
@@ -240,6 +240,63 @@ namespace Automation.DataAccess.DKP
 
 
             return _dbConnection.Query<CLEARDto>(sqlQuery);
+        }
+
+        #endregion
+
+
+        #region check 3
+
+        const int d = 5;
+        public IEnumerable<ScheduleOpenDto> Check3_Query1()
+        {
+            const string sqlQuery = "SELECT 'Schedule open' QueryName ,GETDATE() DateNow,e.Event,e.active, e.EventService, e.MessageQueue, eq.*" +
+                " FROM   EventQueue eq (nolock) INNER JOIN Event e(nolock) ON e.EventID = eq.EventID" +
+                " where eq.Object ='Schedule' AND eq.FailureDate IS NULL AND eq.FailureMessage IS NULL AND eq.successDate IS  NULL AND eq.SuccessMessage IS NULL AND eq.MSMQBatchID IS NOT NULL AND eq.QueuedDate <= GETDATE() - @d ORDER BY eq.QueuedDate DESC";
+
+            var parameters = new { d = d };
+            return _dbConnection.Query<ScheduleOpenDto>(sqlQuery, parameters);
+        }
+
+        public IEnumerable<ScheduleOpenDto> Check3_Query2()
+        {
+            const string sqlQuery = "SELECT 'Schedule open1' QueryName ,e.Event,e.active, e.EventService, e.MessageQueue, eq.*" +
+                " FROM   EventQueue eq (nolock) INNER JOIN Event e(nolock) ON e.EventID = eq.EventID where eq.Object = 'Schedule'" +
+                " AND eq.FailureMessage IS not NULL AND eq.successDate IS  NULL AND eq.QueuedDate >= GETDATE()-10 ORDER BY eq.QueuedDate DESC";
+
+            return _dbConnection.Query<ScheduleOpenDto>(sqlQuery);
+        }
+
+        public IEnumerable<DecisionStepOnScheduleOpenDto> Check3_Query3()
+        {
+            const string sqlQuery = "SELECT top 100 d.*,e.Event, e.EventService, e.MessageQueue, eq.*" +
+                " FROM   EventQueue eq (nolock) INNER JOIN Event e(nolock) ON e.EventID = eq.EventID" +
+                " outer apply (select ds.DecisionStepID,ds.DecisionID from DecisionStep ds with(nolock) where ds.DecisionStepID = CAST(SUBSTRING(eq.QueuedUser, CHARINDEX(' ', eq.QueuedUser, 1), 15) AS INT))d" +
+                "where e.EventID NOT IN (666,161,752,759) AND eq.Object != 'Schedule' AND e.excludeFromMonitoring != 0 AND eq.FailureMessage IS NOT NULL AND eq.successDate IS  NULL AND eq.SuccessMessage IS NULL AND eq.QueuedDate >= GETDATE() - @d ORDER BY eq.QueuedDate DESC";
+
+            return _dbConnection.Query<DecisionStepOnScheduleOpenDto>(sqlQuery);
+        }
+
+
+        public IEnumerable<ScheduleOpenDto> Check3_Query4()
+        {
+            const string sqlQuery = "SELECT 'Schedule EQs' QueryName,e.Event, e.EventService, e.MessageQueue, eq.*" +
+                " FROM   EventQueue eq (nolock) INNER JOIN Event e(nolock) ON e.EventID = eq.EventID" +
+                " where eq.Object ='Schedule' AND eq.FailureMessage IS NOT NULL AND eq.successDate IS  NULL AND eq.SuccessMessage IS NULL AND eq.QueuedDate >= GETDATE() - @d ORDER BY eq.QueuedDate DESC";
+
+            var parameters = new { d = d };
+            return _dbConnection.Query<ScheduleOpenDto>(sqlQuery, parameters);
+        }
+
+        public IEnumerable<ScheduleOpenDto> Check3_Query5()
+        {
+            const string sqlQuery = "select top 100 'PollinEQs' QueryName,d.*,et.event, eq.*" +
+                " from eventqueue eq inner join Event et on et.EventID = eq.EventID" +
+                " outer apply (select ds.DecisionStepID,ds.DecisionID from DecisionStep ds with(nolock) where ds.DecisionStepID = CAST(SUBSTRING(eq.QueuedUser, CHARINDEX(' ', eq.QueuedUser, 1), 15) AS INT))d" +
+                " where et.excludeFromMonitoring is null and(eq.FailureMessage is not null and eq.SuccessMessage is NULL) AND eq.QueuedDate >= GETDATE() - @d order by eq.Queueddate desc";
+
+            var parameters = new { d = d };
+            return _dbConnection.Query<ScheduleOpenDto>(sqlQuery, parameters);
         }
 
         #endregion
