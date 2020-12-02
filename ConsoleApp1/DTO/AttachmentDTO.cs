@@ -4,8 +4,8 @@ namespace Automation.DataAccess.DataAccessObjects.DKP.DTO
 {
     public class AttachmentDto
     {
-        public DateTime createddate { get; set; }
-        public DateTime updateddate { get; set; }
+        public DateTime CreatedDate { get; set; }
+        public DateTime UpdatedDate { get; set; }
         public int AttachmentID { get; set; }
         public string Attachment { get; set; }
         public string AttachmentType { get; set; }
@@ -31,9 +31,9 @@ namespace Automation.DataAccess.DataAccessObjects.DKP.DTO
         public string ReturnDue { get; set; }
         public string ReturnReceived { get; set; }
         public int CreatedPersonID { get; set; }
-        public DateTime? CreatedDate { get; set; }
+       // public DateTime? CreatedDate { get; set; }
         public int UpdatedPersonID { get; set; }
-        public DateTime UpdatedDate { get; set; }
+       // public DateTime UpdatedDate { get; set; }
         public string MetaXSD { get; set; }
         public string MetaXML { get; set; }
         public int? AttachmentTemplateID { get; set; }
