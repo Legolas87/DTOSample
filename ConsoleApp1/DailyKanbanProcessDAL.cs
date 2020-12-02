@@ -221,13 +221,14 @@ namespace Automation.DataAccess.DKP
                 " OUTER APPLY (select d.DecisionID,dt.DecisionTemplateID,dt.DecisionTemplate,dt.Object,dt.ReportID,d.ActualStart,d.status,d.ActualCompletion from product p with(nolock) inner join DecisionTemplate dt with(nolock) on dt.DecisionTemplateID = p.DecisionID AND p.ProductID = po.ProductID inner join Decision d with(nolock) on d.DecisionTemplateID = dt.DecisionTemplateID WHERE d.Object = 'ProductOrder' AND d.ObjectID = po.ProductOrderID)ds" +
                 "  where po.createddate >= getdate()-@d AND po.AttachmentID = at.AttachmentID and po.productID != 23 order by po.CreatedDate";
 
-            return _dbConnection.Query<NonCLEARDto>(sqlQuery);
+            var parameters = new { d = d };
+            return _dbConnection.Query<NonCLEARDto>(sqlQuery, parameters);
         }
 
         //#CLEAR
         public IEnumerable<CLEARDto> Check2_Query3()
         {
-            const string sqlQuery = "select '#CLEAR', po.ProductOrderID,po.ProductOrder,at.AttachmentID,at.Attachment, poSum.TotalCountInFile,poSum.SuccessCount,poSum.CLRRCount,poSum.InputErrorCount,poSum.PublicDataErrorCount,poSum.TotalCountVerfication,poSum.SuccessCountVerfication,poSum.FileType,po.CreatedDate,org.Organization,p.ProductName,po.OrganizationID,po.productid,po.productOrderType,po.status ,pod.PODCount,at.FileRowCount" +
+            const string sqlQuery = "select '#CLEAR' QueryName, po.ProductOrderID,po.ProductOrder,at.AttachmentID,at.Attachment, poSum.TotalCountInFile,poSum.SuccessCount,poSum.CLRRCount,poSum.InputErrorCount,poSum.PublicDataErrorCount,poSum.TotalCountVerfication,poSum.SuccessCountVerfication,poSum.FileType,po.CreatedDate,org.Organization,p.ProductName,po.OrganizationID,po.productid,po.productOrderType,po.status ,pod.PODCount,at.FileRowCount" +
                 " from productorder po with (nolock) inner join organization org with(nolock) on po.OrganizationID = org.OrganizationID inner join product p with(nolock) on po.productID = p.ProductID" +
                 " OUTER APPLY (SELECT pd.productORderID,count(pd.loanid) PODCount FROM productORderDetails pd with(nolock) WHERE po.productORderID = pd.ProductOrderID group by pd.productORderID)POD" +
                 " OUTER APPLY (SELECT att.AttachmentID,att.Attachment,att.FileRowCount FROM Attachment att with(nolock) WHERE po.AttachmentID = att.AttachmentID)at" +
@@ -321,6 +322,54 @@ namespace Automation.DataAccess.DKP
 
             return _dbConnection.Query<EventQueueDto>(sqlQuery);
         }
+        #endregion
+
+
+        #region check 7
+
+        //#LR Iseries/DALS
+        public IEnumerable<LRIseriesDto> Check7_Query1()
+        {
+            const string sqlQuery = "SELECT '#LR Iseries/DALS' QueryName,at.Attachment FileName,At.AttachmentID,po.ProductOrderID,Ds.DecisionID,At.CreatedDate,po.OrganizationID,po.ProductID,po.productOrder,at.PathURL,ds.Status" +
+                " from productOrderDetails pd with (nolock) inner join productOrder po with(nolock) on po.ProductOrderID = pd.ProductOrderID" +
+                " where pd.status in ('Queued for Valuation','Valuation In process') and po.productID=23 and po.organizationid in (1592589)" +
+                " group by po.organizationid,pd.status";
+
+            return _dbConnection.Query<LRIseriesDto>(sqlQuery);
+        }
+
+
+        //#Non-CLEAR
+        public IEnumerable<NonCLEARDto> Check7_Query2()
+        {
+            const string sqlQuery = "select '#Non-CLEAR' QueryName,po.ProductOrderID,po.ProductOrder,at.AttachmentID,at.Attachment,ds.DecisionID,ds.ActualStart,ds.status,ds.ActualCompletion,po.CreatedDate, org.Organization,p.ProductName,po.OrganizationID,po.productid,po.productOrderType,po.status ,pod.PODCount,at.FileRowCount,ds.* " +
+                " from productorder po with (nolock) inner join organization org with(nolock) on po.OrganizationID = org.OrganizationID inner join product p with(nolock) on po.productID = p.ProductID" +
+                " OUTER APPLY (SELECT pd.productORderID,count(pd.loanid) PODCount FROM productORderDetails pd with(nolock) WHERE po.productORderID = pd.ProductOrderID group by pd.productORderID)POD" +
+                " OUTER APPLY (SELECT att.AttachmentID,att.Attachment,att.FileRowCount FROM Attachment att with(nolock) WHERE po.AttachmentID = att.AttachmentID AND(ATT.Attachment NOT LIKE '%ISERIES%' AND ATT.Attachment NOT LIKE '%DALSINPUT%'))at" +
+                " OUTER APPLY (select d.DecisionID,dt.DecisionTemplateID,dt.DecisionTemplate,dt.Object,dt.ReportID,d.ActualStart,d.status,d.ActualCompletion from product p with(nolock) inner join DecisionTemplate dt with(nolock) on dt.DecisionTemplateID = p.DecisionID AND p.ProductID = po.ProductID inner join Decision d with(nolock) on d.DecisionTemplateID = dt.DecisionTemplateID WHERE d.Object = 'ProductOrder' AND d.ObjectID = po.ProductOrderID)ds" +
+                "  where po.createddate >= getdate()-5 AND po.AttachmentID = at.AttachmentID and po.productID != 23 order by po.CreatedDate";
+
+            return _dbConnection.Query<NonCLEARDto>(sqlQuery);
+        }
+
+        //#CLEAR
+        public IEnumerable<CLEARDto> Check7_Query3()
+        {
+            const string sqlQuery = "select '#CLEAR' QueryName, po.ProductOrderID,po.ProductOrder,at.AttachmentID,at.Attachment,poSum.*,po.CreatedDate, org.Organization,p.ProductName,po.OrganizationID,po.productid,productOrderType,po.status ,pod.PODCount,at.FileRowCount" +
+                " from productorder po with (nolock) inner join organization org with(nolock) on po.OrganizationID = org.OrganizationID inner join product p with(nolock) on po.productID = p.ProductID" +
+                " OUTER APPLY (SELECT pd.productORderID,count(pd.loanid) PODCount FROM productORderDetails pd with(nolock) WHERE po.productORderID = pd.ProductOrderID group by pd.productORderID)POD" +
+                " OUTER APPLY (SELECT att.AttachmentID,att.Attachment,att.FileRowCount FROM Attachment att with(nolock) WHERE po.AttachmentID = att.AttachmentID)at" +
+                " OUTER APPLY (SELECT FileType,TotalCountInFile,SuccessCount,CLRRCount,ValidationErrorDupCount,ValidationErrorCount,InputErrorCount,PublicDataErrorCount," +
+                " CASE when ISNULL(TotalCountInFile, 0) = (ISNULL(InputErrorCount,0) + ISNULL(SuccessCount,0)) then ISNULL(TotalCountInFile, 0) Else(ISNULL(InputErrorCount, 0) + ISNULL(SuccessCount, 0)) - ISNULL(TotalCountInFile, 0) end as TotalCountVerfication," +
+                " CASE when ISNULL(SuccessCount, 0) = (ISNULL(PublicDataErrorCount,0) + ISNULL(CLRRCount,0)) then ISNULL(SuccessCount, 0) Else(ISNULL(PublicDataErrorCount, 0) + ISNULL(CLRRCount, 0)) - ISNULL(SuccessCount, 0) end as SuccessCountVerfication" +
+                " FROM VproductOrderSummary VpoSum with (nolock) WHERE po.AttachmentID = VpoSum.AttachmentID AND po.ProductOrderID = VpoSum.ProductOrderID)poSum" +
+                " where po.createddate >= getdate()-5 and po.productID = 23 order by po.CreatedDate";
+
+
+
+            return _dbConnection.Query<CLEARDto>(sqlQuery);
+        }
+
         #endregion
     }
 }
