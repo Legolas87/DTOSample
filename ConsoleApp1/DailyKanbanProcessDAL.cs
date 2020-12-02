@@ -300,5 +300,27 @@ namespace Automation.DataAccess.DKP
         }
 
         #endregion
+
+
+
+        #region check 5
+
+        public IEnumerable<AttachmentDto> Check5_Query1()
+        {
+            const string sqlQuery = "select top 10 *" +
+                " from attachment where attachmenttype like '%BAC EA SLA%' order by attachmentid desc";
+
+            return _dbConnection.Query<AttachmentDto>(sqlQuery);
+        }
+
+
+        public IEnumerable<EventQueueDto> Check5_Query2()
+        {
+            const string sqlQuery = "select *" +
+                " from eventqueue where objectid = 58767247";
+
+            return _dbConnection.Query<EventQueueDto>(sqlQuery);
+        }
+        #endregion
     }
 }
